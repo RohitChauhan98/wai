@@ -360,7 +360,7 @@ export default function TaskBoard() {
 
         return (
             <div className={`pb-[60px] p-4 rounded ${container.color}`}>
-                <div className="flex-1 min-w-72 h-full">
+                <div className="flex-1 h-full">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-lg font-bold text-gray-800">{container.title}</h3>
                         <div className="flex items-center gap-2">
@@ -432,7 +432,7 @@ export default function TaskBoard() {
 
     return (
         <div className="" >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
                 {basedOnStatus.map((statusContainer) => (
                     <StatusContainer
                         key={statusContainer.id}
