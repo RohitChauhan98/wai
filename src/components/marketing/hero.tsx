@@ -1,3 +1,5 @@
+'use client'
+
 import { ArrowRightIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -5,8 +7,10 @@ import Container from "../global/container";
 import Icons from "../global/icons";
 import { Button } from "../ui/button";
 import { OrbitingCircles } from "../ui/orbiting-circles";
+import { useRouter } from "next/navigation";
 
 const Hero = () => {
+    const router = useRouter();
     return (
         <div className="relative flex flex-col items-center justify-center w-full py-20">
 
@@ -70,7 +74,7 @@ const Hero = () => {
                         </p>
                     </Container>
                     <Container delay={0.25} className="z-20">
-                        <div className="flex items-center justify-center mt-6 gap-x-4">
+                        <div onClick={() => router.push('/aiChat')} className="flex items-center justify-center mt-6 gap-x-4">
                             <Link href="#" className="flex items-center gap-2 group">
                                 <Button size="lg">
                                     Start Free Trial
