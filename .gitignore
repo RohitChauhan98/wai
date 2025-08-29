@@ -42,3 +42,7 @@ next-env.d.ts
 
 dummy
 ignore
+
+# Ignore lock files
+package-lock.json
+pnpm-lock.yaml
