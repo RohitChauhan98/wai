@@ -54,7 +54,7 @@ export default function ChatUI() {
               placeholder="Ask anything..."
               className="flex-1 bg-transparent outline-none text-sm"
             />
-            <button onClick={() => router.push('/aiTemplate')} className="ml-2 p-2 hover:bg-neutral-800 rounded-lg">
+            <button onClick={() => router.push('/workflow')} className="ml-2 p-2 hover:bg-neutral-800 rounded-lg">
               Send
             </button>
           </div>
