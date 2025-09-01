@@ -2,6 +2,7 @@
 
 import React, { useState, DragEvent, useRef, useEffect } from 'react';
 import { Clock, User, Calendar, Flag, CheckCircle2, Circle, AlertCircle } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 interface Container {
     id: string;
@@ -155,6 +156,9 @@ export default function TaskBoard() {
     const [basedOnDeadline, setBasedOnDeadline] = useState<any>();
     const [basedOnAssignee, setBasedOnAssignee] = useState<any>();
 
+    const params = useSearchParams();
+    const workflowId = params.get('id');
+
     const draggedItem = useRef<{ item: any; sourceContainerId: string } | null>(null);
 
     const handleDragStart = (e: DragEvent<HTMLDivElement>, item: any) => {
@@ -233,7 +237,19 @@ export default function TaskBoard() {
         draggedItem.current = null;
     }
 
+    useEffect(() => {
+        const fetchData = async () => {
+            const response = await fetch(`/api/workflow/create?workflow_id=${workflowId}`);
+            const data = await response.json();
 
+            console.log("Single Workflow Data: ", data.workflow);
+
+            if (data.workflow) {
+                setWorkflow(data.workflow);
+            }
+        };
+        fetchData();
+    }, [workflowId])
 
 
 
@@ -265,8 +281,8 @@ export default function TaskBoard() {
                             <Circle className="w-4 h-4 text-gray-400" />
                     }
                     <span className={`text-xs px-2 py-1 rounded-full font-medium ${item.priority === 1 ? 'bg-red-100 text-red-700' :
-                            item.priority === 2 ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-blue-100 text-blue-700'
+                        item.priority === 2 ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-blue-100 text-blue-700'
                         }`}>
                         {item.priority === 1 ? 'HIGH' : item.priority === 2 ? 'MED' : 'LOW'}
                     </span>
@@ -286,8 +302,8 @@ export default function TaskBoard() {
                     </div>
                 </div>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${item.status === 'completed' ? 'bg-green-100 text-green-700' :
-                        item.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                            'bg-gray-100 text-gray-700'
+                    item.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                        'bg-gray-100 text-gray-700'
                     }`}>
                     {item.status}
                 </span>
@@ -320,8 +336,8 @@ export default function TaskBoard() {
                     <span>{new Date(item.created_at).toLocaleDateString()}</span>
                 </div>
                 <span className={`text-xs px-3 py-1 rounded-full font-medium uppercase tracking-wide ${item.type === 'human' ? 'bg-blue-500 text-white' :
-                        item.type === 'ai' ? 'bg-purple-500 text-white' :
-                            'bg-gray-500 text-white'
+                    item.type === 'ai' ? 'bg-purple-500 text-white' :
+                        'bg-gray-500 text-white'
                     }`}>
                     {item.type}
                 </span>
@@ -412,7 +428,7 @@ export default function TaskBoard() {
 
         const updatedStatuses: any = statuses.map((s) => ({ ...s, tasks: [] }));
 
-        workflow.tasks.map((task) => {
+        workflow && workflow.tasks.map((task) => {
             const container = updatedStatuses.find((s: any) => s.id === task.status);
             if (container) {
                 container.tasks = [...container.tasks, task];
@@ -420,17 +436,17 @@ export default function TaskBoard() {
         })
 
         setBasedOnStatus(updatedStatuses);
-    }, [])
+    }, [workflow])
 
     useEffect(() => {
-        console.log("Tasks based on status:", basedOnStatus)
-    }, [basedOnStatus])
+        console.log("Tasks based on status:", workflow)
+    }, [workflow])
 
 
     return (
         <div className="" >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
-                {basedOnStatus.map((statusContainer) => (
+                {basedOnStatus && basedOnStatus.map((statusContainer) => (
                     <StatusContainer
                         key={statusContainer.id}
                         container={statusContainer}

@@ -41,7 +41,7 @@ export default function ChatUI() {
     const currentPrompt = prompt;
     setPrompt('');
 
-    fetch('https://n8n.cruxsphere.com/webhook/ec6a6980-cae1-41bc-9fee-535e6687e6a0t', {
+    fetch('https://n8n.cruxsphere.com/webhook/ec6a6980-cae1-41bc-9fee-535e6687e6a0', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export default function ChatUI() {
         const aiResponse = {
           type: "ai",
           data: {
-            content: data.response || "I received your message.",
+            content: data[0].output || "I received your message.",
             tool_calls: [],
             invalid_tool_calls: [],
             additional_kwargs: {},
@@ -190,8 +190,8 @@ export default function ChatUI() {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Chat Header */}
-        <header className="border-b border-neutral-800 p-4">
-          <div className="flex items-center justify-between">
+        <header className="border-b border-neutral-800 p-4 flex gap-5">
+          <div className="w-full flex items-center justify-between">
             <h2 className="text-xl font-semibold">
               {chatHistory.length > 0 ? 'Chat Session' : 'What can I help with?'}
             </h2>
@@ -201,6 +201,12 @@ export default function ChatUI() {
               </div>
             )}
           </div>
+          <button
+            onClick={() => { router.push('/workflow') }}
+            className="flex items-center gap-2 bg-neutral-800 px-3 py-2 rounded-lg text-sm hover:bg-neutral-700 transition-colors"
+          >
+            Workflows
+          </button>
         </header>
 
         {/* Messages Container */}
@@ -223,8 +229,8 @@ export default function ChatUI() {
                   )}
 
                   <div className={`max-w-[70%] rounded-2xl px-4 py-3 ${message.type === 'human'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-neutral-800 text-neutral-100'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-neutral-800 text-neutral-100'
                     }`}>
                     <div className="text-sm whitespace-pre-wrap">
                       {formatMessageContent(message.data.content)}
