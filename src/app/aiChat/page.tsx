@@ -162,12 +162,11 @@ export default function ChatUI() {
     <div className="flex h-screen bg-black text-white">
       {/* Sidebar */}
       <aside className="w-64 bg-neutral-900 border-r border-neutral-800 flex flex-col">
-        <div className="p-4 border-b border-neutral-800">
-          <h1 className="text-lg font-semibold">Launch UI</h1>
-          <p className="text-sm text-neutral-400">Enterprise</p>
+        <div className="flex justify-between items-center p-4 border-b border-neutral-800">
+          <h1 className="text-lg font-semibold">WAI</h1>
           <button
             onClick={createNewChat}
-            className="mt-3 flex items-center gap-2 bg-neutral-800 px-3 py-2 rounded-lg text-sm hover:bg-neutral-700 transition-colors"
+            className="flex items-center gap-2 bg-neutral-800 px-3 py-2 rounded-lg text-sm hover:bg-neutral-700 transition-colors"
           >
             <Plus size={16} /> New chat
           </button>
