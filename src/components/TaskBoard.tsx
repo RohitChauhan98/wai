@@ -241,7 +241,7 @@ export default function TaskBoard() {
         item: any;
     }> = ({ item }) => (
         <div
-        draggable
+            draggable
             onDragStart={(e) => handleDragStart(e, item)}
             onDragEnd={handleDragEnd}
             className={`
@@ -250,86 +250,83 @@ export default function TaskBoard() {
             ${getItemTypeColor(item.type)}
             ${draggedItem.current?.item.id === item.id ? '' : 'opacity-50 scale-95'}
           `}
-    >
-        {/* Header with title and status */}
-        <div className="flex items-start justify-between mb-3">
-            <div className="flex-1">
-                <h3 className="font-semibold text-gray-800 text-sm mb-1">{item.title}</h3>
-                <p className="text-xs text-gray-600 leading-relaxed">{item.description}</p>
+        >
+            {/* Header with title and status */}
+            <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                    <h3 className="font-semibold text-gray-800 text-sm mb-1">{item.title}</h3>
+                    <p className="text-xs text-gray-600 leading-relaxed">{item.description}</p>
+                </div>
+                <div className="flex items-center gap-2 ml-3">
+                    {item.status === 'completed' ?
+                        <CheckCircle2 className="w-4 h-4 text-green-600" /> :
+                        item.status === 'in-progress' ?
+                            <AlertCircle className="w-4 h-4 text-blue-600" /> :
+                            <Circle className="w-4 h-4 text-gray-400" />
+                    }
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${item.priority === 1 ? 'bg-red-100 text-red-700' :
+                            item.priority === 2 ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-blue-100 text-blue-700'
+                        }`}>
+                        {item.priority === 1 ? 'HIGH' : item.priority === 2 ? 'MED' : 'LOW'}
+                    </span>
+                </div>
             </div>
-            <div className="flex items-center gap-2 ml-3">
-                {item.status === 'completed' ? 
-                    <CheckCircle2 className="w-4 h-4 text-green-600" /> :
-                    item.status === 'in-progress' ? 
-                    <AlertCircle className="w-4 h-4 text-blue-600" /> :
-                    <Circle className="w-4 h-4 text-gray-400" />
-                }
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    item.priority === 1 ? 'bg-red-100 text-red-700' :
-                    item.priority === 2 ? 'bg-yellow-100 text-yellow-700' : 
-                    'bg-blue-100 text-blue-700'
-                }`}>
-                    {item.priority === 1 ? 'HIGH' : item.priority === 2 ? 'MED' : 'LOW'}
+
+            {/* Meta info row */}
+            <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        <span>{item.estimated_duration}min</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        <span className="capitalize">{item.assigned_to}</span>
+                    </div>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${item.status === 'completed' ? 'bg-green-100 text-green-700' :
+                        item.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
+                            'bg-gray-100 text-gray-700'
+                    }`}>
+                    {item.status}
                 </span>
             </div>
-        </div>
 
-        {/* Meta info row */}
-        <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
-            <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{item.estimated_duration}min</span>
-                </div>
-                <div className="flex items-center gap-1">
-                    <User className="w-3 h-3" />
-                    <span className="capitalize">{item.assigned_to}</span>
-                </div>
-            </div>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
-                item.status === 'completed' ? 'bg-green-100 text-green-700' :
-                item.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                'bg-gray-100 text-gray-700'
-            }`}>
-                {item.status}
-            </span>
-        </div>
-
-        {/* Deliverables */}
-        {item.deliverables && item.deliverables.length > 0 && (
-            <div className="mb-3 p-2 bg-white bg-opacity-60 rounded-lg">
-                <div className="flex items-start gap-1">
-                    <Flag className="w-3 h-3 mt-0.5 text-orange-500" />
-                    <div className="flex-1">
-                        <span className="text-xs font-medium text-gray-700">Deliverables:</span>
-                        <div className="mt-1 space-y-1">
-                            {item.deliverables.map((deliverable: any, index: number) => (
-                                <div key={index} className="flex items-start gap-1">
-                                    <div className="w-1 h-1 bg-blue-400 rounded-full mt-1.5 flex-shrink-0"></div>
-                                    <span className="text-xs text-gray-600">{deliverable}</span>
-                                </div>
-                            ))}
+            {/* Deliverables */}
+            {item.deliverables && item.deliverables.length > 0 && (
+                <div className="mb-3 p-2 bg-white bg-opacity-60 rounded-lg">
+                    <div className="flex items-start gap-1">
+                        <Flag className="w-3 h-3 mt-0.5 text-orange-500" />
+                        <div className="flex-1">
+                            <span className="text-xs font-medium text-gray-700">Deliverables:</span>
+                            <div className="mt-1 space-y-1">
+                                {item.deliverables.map((deliverable: any, index: number) => (
+                                    <div key={index} className="flex items-start gap-1">
+                                        <div className="w-1 h-1 bg-blue-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                                        <span className="text-xs text-gray-600">{deliverable}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        )}
+            )}
 
-        {/* Bottom row with type badge and date */}
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-                <Calendar className="w-3 h-3" />
-                <span>{new Date(item.created_at).toLocaleDateString()}</span>
+            {/* Bottom row with type badge and date */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <Calendar className="w-3 h-3" />
+                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                </div>
+                <span className={`text-xs px-3 py-1 rounded-full font-medium uppercase tracking-wide ${item.type === 'human' ? 'bg-blue-500 text-white' :
+                        item.type === 'ai' ? 'bg-purple-500 text-white' :
+                            'bg-gray-500 text-white'
+                    }`}>
+                    {item.type}
+                </span>
             </div>
-            <span className={`text-xs px-3 py-1 rounded-full font-medium uppercase tracking-wide ${
-                item.type === 'human' ? 'bg-blue-500 text-white' :
-                item.type === 'ai' ? 'bg-purple-500 text-white' :
-                'bg-gray-500 text-white'
-            }`}>
-                {item.type}
-            </span>
         </div>
-    </div>
     );
 
     const DraggableComponent1: React.FC<{
