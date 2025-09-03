@@ -85,10 +85,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <button 
             onClick={() => onAITask(task)} 
             className='bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 disabled:from-slate-600 disabled:to-slate-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl disabled:hover:scale-100'
-            disabled={isProcessing || task.status === 'in-progress'}
+            disabled={isProcessing}
           >
-            {task.status === 'pending' ? 'Proceed' : 
-             (task.status === 'in-progress' || isProcessing) ? 'Processing...' : 'Completed'}
+            {isProcessing ? 'Processing...' : 
+             task.status === 'pending' ? 'Proceed' : 
+             task.status === 'in-progress' ? 'Ready' : 'Completed'}
           </button>
         </div>
       );
@@ -106,10 +107,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               }
             }} 
             className='bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:from-slate-600 disabled:to-slate-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl disabled:hover:scale-100'
-            disabled={isSubmitting || isProcessing}
+            disabled={isProcessing}
           >
-            {task.status === 'pending' ? 'Proceed' : 
-             task.status === 'in-progress' ? (isSubmitting || isProcessing ? 'Processing...' : 'Write a Note...') : 'Completed'}
+            {isProcessing ? 'Processing...' : 
+             task.status === 'pending' ? 'Proceed' : 
+             task.status === 'in-progress' ? 'Write a Note...' : 'Completed'}
           </button>
         </div>
       );

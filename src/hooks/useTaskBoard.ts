@@ -154,11 +154,21 @@ export const useTaskBoard = () => {
     if (!selectedTask || !workflow || !humanInput.trim()) return;
 
     setIsSubmitting(true);
+    
+    // Store original status for potential revert
+    const originalStatus = selectedTask.status;
+    
     // Add task to processing set
     setProcessingTasks(prev => new Set(prev).add(selectedTask.task_id));
     
     try {
+      // Move to in-progress only when user submits
+      updateItemContainer(selectedTask, 'in-progress');
+      await saveTaskStatus(workflow.workflow_id, selectedTask.task_id, 'in-progress');
+
       const prompt = buildFullPrompt(selectedTask, false, humanInput);
+      console.log('Sending prompt to AI:', prompt);
+      
       const result = await executeAITask(prompt, workflow.workflow_id);
       
       if (result) {
@@ -178,13 +188,21 @@ export const useTaskBoard = () => {
         // Move to done
         updateItemContainer(selectedTask, 'done');
         await saveTaskStatus(workflow.workflow_id, selectedTask.task_id, 'done');
-        
-        setHumanInput('');
-        setIsHumanModalOpen(false);
-        setSelectedTask(null);
+      } else {
+        // If no result, revert to original status
+        console.error('No result from AI task execution');
+        updateItemContainer(selectedTask, originalStatus);
+        await saveTaskStatus(workflow.workflow_id, selectedTask.task_id, originalStatus);
       }
     } catch (error) {
       console.error('Error processing human task:', error);
+      // On error, revert to original status
+      updateItemContainer(selectedTask, originalStatus);
+      try {
+        await saveTaskStatus(workflow.workflow_id, selectedTask.task_id, originalStatus);
+      } catch (saveError) {
+        console.error('Error reverting task status:', saveError);
+      }
     } finally {
       setIsSubmitting(false);
       // Remove task from processing set
@@ -193,6 +211,10 @@ export const useTaskBoard = () => {
         newSet.delete(selectedTask.task_id);
         return newSet;
       });
+      // Always close modal and reset state after processing
+      setHumanInput('');
+      setIsHumanModalOpen(false);
+      setSelectedTask(null);
     }
   };
 
@@ -205,10 +227,7 @@ export const useTaskBoard = () => {
   };
 
   const handleCustomPrompt = (task: Task) => {
-    if (!workflow) return;
-    
-    updateItemContainer(task, 'in-progress');
-    saveTaskStatus(workflow.workflow_id, task.task_id, 'in-progress');
+    // Only open the modal, don't change task status until user submits
     setSelectedTask(task);
     setIsHumanModalOpen(true);
   };

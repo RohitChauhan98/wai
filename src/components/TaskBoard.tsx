@@ -51,8 +51,8 @@ export default function TaskBoard() {
     setHumanInput(value);
   };
 
-  const handleSubmit = () => {
-    handleHumanInputSubmit();
+  const handleSubmit = async () => {
+    await handleHumanInputSubmit();
   };
 
   if (loading) {
