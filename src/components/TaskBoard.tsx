@@ -1,8 +1,11 @@
 'use client'
 
 import React, { useState, DragEvent, useRef, useEffect } from 'react';
-import { Clock, User, Calendar, Flag, CheckCircle2, Circle, AlertCircle } from 'lucide-react';
+import { Clock, User, Calendar, Flag, CheckCircle2, Circle, AlertCircle, CheckCircle, CheckCircleIcon } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import AIResultsModal from './aiResultModal';
+import HumanInputModal from './humanInputModal';
+import { set } from 'date-fns';
 
 interface Container {
     id: string;
@@ -20,7 +23,7 @@ const statuses: Container[] = [
 
 
 export default function TaskBoard() {
-    const [workflow, setWorkflow] = useState({
+    const [workflow, setWorkflow] = useState<any>({
         "workflow_id": "b83730fb-6f81-4fd2-b1db-6b0427716f8e",
         "query": "help me create a 2 week plan for a marketing campain for my company cococola where we analyze the market trends about my brand and my competators and then we will post accordingly and create cretive reply to the competators",
         "created_at": "2024-06-12T10:00:00.000Z",
@@ -155,6 +158,13 @@ export default function TaskBoard() {
     const [basedOnStatus, setBasedOnStatus] = useState<Container[]>(statuses);
     const [basedOnDeadline, setBasedOnDeadline] = useState<any>();
     const [basedOnAssignee, setBasedOnAssignee] = useState<any>();
+    const [submit, setSubmit] = useState(false);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalData, setModalData] = useState<any>(null);
+    const [isHumanModalOpen, setIsHumanModalOpen] = useState(false);
+    const [humanInput, setHumanInput] = useState<string>('');
+    const [selectedTask, setSelectedTask] = useState<any>(null);
 
     const params = useSearchParams();
     const workflowId = params.get('id');
@@ -233,6 +243,7 @@ export default function TaskBoard() {
         if (sourceContainerId === targetContainerId) return;
 
         updateItemContainer(item, targetContainerId);
+        saveTaskStatus(item.task_id, targetContainerId);
 
         draggedItem.current = null;
     }
@@ -250,6 +261,181 @@ export default function TaskBoard() {
         };
         fetchData();
     }, [workflowId])
+
+    async function saveHookResponse(task_id: any, response: any): Promise<boolean> {
+        try {
+            const res = await fetch('/api/workflow/task/updateTaskResponse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    workflow_id: workflow.workflow_id,
+                    task_id: task_id,
+                    response
+                })
+            });
+
+            const data = await res.json();
+            console.log("Save Hook Response Data: ", data);
+            return true;
+        } catch (error) {
+            console.error('Error:', error);
+            return false;
+        }
+    }
+
+    async function saveTaskStatus(task_id: any, status: any): Promise<boolean> {
+        try {
+            const res = await fetch('/api/workflow/task/updateTaskStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    workflow_id: workflow.workflow_id,
+                    task_id: task_id,
+                    status
+                })
+            });
+
+            const data = await res.json();
+            console.log("Task Status Update Data: ", data);
+            return true;
+        } catch (error) {
+            console.error('Error:', error);
+            return false;
+        }
+    }
+
+    async function getTaskResponse(task_id: any): Promise<boolean> {
+        try {
+            const res = await fetch('/api/workflow/task/getTaskResponse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    workflow_id: workflow.workflow_id,
+                    task_id: task_id,
+                })
+            });
+
+            const data = await res.json();
+            console.log("Task Status Update Data: ", data);
+            setModalData(data.response.data);
+            return true;
+        } catch (error) {
+            console.error('Error:', error);
+            return false;
+        }
+    }
+
+    
+
+    async function talkToHook(aiPrompt: string, task_id: string, workflowId: string): Promise<boolean> {
+        try {
+            const response = await fetch('https://n8n.cruxsphere.com/webhook/ec6a6980-cae1-41bc-9fee-535e6687e6a0', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: aiPrompt,
+                    sessionid: workflowId
+                })
+            });
+
+            const data = await response.json();
+
+            setModalData(data[0].output);
+
+            // Add AI response to chat history
+            const aiResponse = {
+                type: "ai",
+                data: {
+                    content: data[0].output || "I received your message.",
+                    tool_calls: [],
+                    invalid_tool_calls: [],
+                    additional_kwargs: {},
+                    response_metadata: {}
+                }
+            };
+
+            return await saveHookResponse(task_id, aiResponse);
+        } catch (error) {
+            console.error('Error:', error);
+            // Add error message
+            const errorResponse = {
+                type: "ai",
+                data: {
+                    content: "Sorry, I encountered an error. Please try again.",
+                    tool_calls: [],
+                    invalid_tool_calls: [],
+                    additional_kwargs: {},
+                    response_metadata: {}
+                }
+            };
+            return false;
+        }
+    }
+
+
+    const handleAiTask = async (task: any) => {
+
+        //move the task to in-progress container
+        updateItemContainer(task, 'in-progress');
+        saveTaskStatus(task.task_id, 'in-progress');
+
+        // console.log("Handle Ai Task1", basedOnStatus)
+        //send the request to n8n hook
+        let done = await talkToHook(task.ai_prompt, task.task_id, workflow.workflow_id)
+        if (done) {
+            task.status = 'in-progress';
+            //after completion move the task to completed container
+            updateItemContainer(task, 'done');
+            saveTaskStatus(task.task_id, 'done');
+        }
+
+    }
+
+    const moveHumanTasktoInprogress = (task: any) => {
+        //move the task to in-progress container
+        updateItemContainer(task, 'in-progress');
+        saveTaskStatus(task.task_id, 'in-progress');
+
+    }
+
+    function handleHumanInputModal(task: any){
+        setSelectedTask(task);
+        setIsHumanModalOpen(true);
+    }
+
+    function showTaskResult(task: any){
+        getTaskResponse(task.task_id);
+        setIsModalOpen(true);
+    }
+
+
+
+    useEffect(()=>{
+        if(submit){
+            handleHumanTask(selectedTask)
+            setSubmit(false)
+        }
+    },[submit])
+
+
+    const handleHumanTask = async (task: any) => {
+        //send the request to n8n hook
+        let done = await talkToHook(humanInput, task.task_id, workflow.workflow_id)
+        if (done) {
+            task.status = 'in-progress';
+            //after completion move the task to completed container
+            updateItemContainer(task, 'done');
+            saveTaskStatus(task.task_id, 'done');
+        }
+    }
 
 
 
@@ -274,8 +460,8 @@ export default function TaskBoard() {
                     <p className="text-xs text-gray-600 leading-relaxed">{item.description}</p>
                 </div>
                 <div className="flex items-center gap-2 ml-3">
-                    {item.status === 'completed' ?
-                        <CheckCircle2 className="w-4 h-4 text-green-600" /> :
+                    {item.status === 'done' ?
+                        <CheckCircleIcon className="w-4 h-4 text-green-600" /> :
                         item.status === 'in-progress' ?
                             <AlertCircle className="w-4 h-4 text-blue-600" /> :
                             <Circle className="w-4 h-4 text-gray-400" />
@@ -301,7 +487,7 @@ export default function TaskBoard() {
                         <span className="capitalize">{item.assigned_to}</span>
                     </div>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${item.status === 'completed' ? 'bg-green-100 text-green-700' :
+                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${item.status === 'done' ? 'bg-green-100 text-green-700' :
                     item.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
                         'bg-gray-100 text-gray-700'
                     }`}>
@@ -342,6 +528,15 @@ export default function TaskBoard() {
                     {item.type}
                 </span>
             </div>
+            {item.type === 'ai' && item.status !== 'done' && <div className='flex justify-end mt-3'>
+                <button onClick={() => handleAiTask(item)} className='bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 active:scale-95 active:bg-blue-700 transition-transform duration-150'>{item.status == 'pending' ? 'Proceed' : item.status === 'in-progress' ? 'Processing...' : 'Completed'}</button>
+            </div>}
+            {item.type === 'human' && item.status !== 'done' && <div className='flex justify-end mt-3'>
+                <button onClick={() =>{item.status == 'pending' ? moveHumanTasktoInprogress(item) : item.status === 'in-progress' ? handleHumanInputModal(item) :  null }}className='bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 active:scale-95 active:bg-blue-700 transition-transform duration-150'>{item.status == 'pending' ? 'Proceed' : item.status === 'in-progress' ? (submit ? 'Processing...' : 'Write a Note...') : 'Completed'}</button>
+            </div>}
+            {item.status === 'done' && <div className='flex justify-end mt-3'>
+                <button onClick={() => showTaskResult(item)} className='bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 active:scale-95 active:bg-blue-700 transition-transform duration-150'>Show Result</button>
+            </div>}
         </div>
     );
 
@@ -428,7 +623,7 @@ export default function TaskBoard() {
 
         const updatedStatuses: any = statuses.map((s) => ({ ...s, tasks: [] }));
 
-        workflow && workflow.tasks.map((task) => {
+        workflow && workflow.tasks.map((task: any) => {
             const container = updatedStatuses.find((s: any) => s.id === task.status);
             if (container) {
                 container.tasks = [...container.tasks, task];
@@ -439,13 +634,16 @@ export default function TaskBoard() {
     }, [workflow])
 
     useEffect(() => {
-        console.log("Tasks based on status:", workflow)
-    }, [workflow])
+        console.log("Tasks basedOnStatus:", basedOnStatus)
+    }, [basedOnStatus])
 
 
     return (
         <div className="" >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6">
+            <div>
+                <p className='text-black text-2xl text-center font-medium py-5'>{workflow.title || ""}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 mt-5">
                 {basedOnStatus && basedOnStatus.map((statusContainer) => (
                     <StatusContainer
                         key={statusContainer.id}
@@ -453,6 +651,20 @@ export default function TaskBoard() {
                     />
                 ))}
             </div>
+
+            <AIResultsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                aiResponse={modalData}
+            />
+
+            <HumanInputModal
+                isOpen={isHumanModalOpen}
+                onClose={() => setIsHumanModalOpen(false)}
+                value={humanInput}
+                onChange={setHumanInput}
+                handleSubmition={setSubmit}
+            />
         </div >
     )
 }
