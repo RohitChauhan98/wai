@@ -69,8 +69,8 @@ const AIResultsModal: React.FC<AIResultsModalProps> = ({
         ref={modalRef}
         className={`
           relative w-full max-w-4xl max-h-[90vh] 
-          bg-gradient-to-br from-white via-slate-50 to-blue-50
-          rounded-3xl shadow-2xl border border-white/20
+          bg-gradient-to-br from-gray-900 via-slate-800 to-gray-800
+          rounded-3xl shadow-2xl border border-gray-600/20
           transform transition-all duration-400 ease-out
           ${isOpen 
             ? 'scale-100 translate-y-0 opacity-100' 
@@ -79,7 +79,7 @@ const AIResultsModal: React.FC<AIResultsModalProps> = ({
         `}
       >
         {/* Header */}
-        <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 px-8 py-6">
+        <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-r from-indigo-800 via-purple-800 to-blue-800 px-8 py-6">
           {/* Background Pattern */}
           {/* <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="7" cy="7" r="1"/%3E%3Ccircle cx="27" cy="27" r="1"/%3E%3Ccircle cx="47" cy="47" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]" /> */}
           
@@ -131,81 +131,81 @@ const AIResultsModal: React.FC<AIResultsModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="max-h-[60vh] overflow-y-auto p-8 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300">
+        <div className="max-h-[60vh] overflow-y-auto p-8 scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600">
           <div className="prose prose-slate max-w-none">
             <ReactMarkdown
               components={{
                 h1: ({ children }) => (
-                  <h1 className="mb-6 flex items-center text-3xl font-bold text-gray-900">
-                    <div className="mr-3 h-1 w-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
+                  <h1 className="mb-6 flex items-center text-3xl font-bold text-gray-100">
+                    <div className="mr-3 h-1 w-8 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full" />
                     {children}
                   </h1>
                 ),
                 h2: ({ children }) => (
-                  <h2 className="mb-4 mt-8 flex items-center text-2xl font-semibold text-gray-800">
-                    <div className="mr-3 h-1 w-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full" />
+                  <h2 className="mb-4 mt-8 flex items-center text-2xl font-semibold text-gray-200">
+                    <div className="mr-3 h-1 w-6 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full" />
                     {children}
                   </h2>
                 ),
                 h3: ({ children }) => (
-                  <h3 className="mb-3 mt-6 flex items-center text-xl font-semibold text-gray-700">
-                    <div className="mr-2 h-1 w-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" />
+                  <h3 className="mb-3 mt-6 flex items-center text-xl font-semibold text-gray-300">
+                    <div className="mr-2 h-1 w-4 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full" />
                     {children}
                   </h3>
                 ),
                 p: ({ children }) => (
-                  <p className="mb-4 leading-relaxed text-gray-600">{children}</p>
+                  <p className="mb-4 leading-relaxed text-gray-400">{children}</p>
                 ),
                 ul: ({ children }) => (
                   <ul className="mb-4 space-y-2">{children}</ul>
                 ),
                 li: ({ children }) => (
                   <li className="flex items-start">
-                    <div className="mr-3 mt-2 h-2 w-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex-shrink-0" />
-                    <span className="text-gray-600">{children}</span>
+                    <div className="mr-3 mt-2 h-2 w-2 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 flex-shrink-0" />
+                    <span className="text-gray-400">{children}</span>
                   </li>
                 ),
                 ol: ({ children }) => (
                   <ol className="mb-4 space-y-2 list-decimal list-inside">{children}</ol>
                 ),
                 blockquote: ({ children }) => (
-                  <blockquote className="border-l-4 border-indigo-500 bg-indigo-50 p-4 my-4 rounded-r-lg">
-                    <div className="text-indigo-800">{children}</div>
+                  <blockquote className="border-l-4 border-indigo-500 bg-indigo-900/30 p-4 my-4 rounded-r-lg">
+                    <div className="text-indigo-200">{children}</div>
                   </blockquote>
                 ),
                 code: ({ children }) => (
-                  <code className="rounded bg-gray-100 px-2 py-1 text-sm font-mono text-gray-800">
+                  <code className="rounded bg-gray-800 px-2 py-1 text-sm font-mono text-gray-200">
                     {children}
                   </code>
                 ),
                 pre: ({ children }) => (
-                  <pre className="rounded-lg bg-gray-900 p-4 text-white overflow-x-auto mb-4">
+                  <pre className="rounded-lg bg-gray-950 p-4 text-white overflow-x-auto mb-4">
                     {children}
                   </pre>
                 ),
                 strong: ({ children }) => (
-                  <strong className="font-semibold text-gray-900">{children}</strong>
+                  <strong className="font-semibold text-gray-100">{children}</strong>
                 ),
                 em: ({ children }) => (
-                  <em className="italic text-gray-700">{children}</em>
+                  <em className="italic text-gray-300">{children}</em>
                 ),
                 hr: () => (
-                  <hr className="my-8 border-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+                  <hr className="my-8 border-0 h-px bg-gradient-to-r from-transparent via-gray-600 to-transparent" />
                 ),
                 table: ({ children }) => (
                   <div className="overflow-x-auto mb-4">
-                    <table className="w-full border-collapse border border-gray-200 rounded-lg">
+                    <table className="w-full border-collapse border border-gray-600 rounded-lg">
                       {children}
                     </table>
                   </div>
                 ),
                 th: ({ children }) => (
-                  <th className="border border-gray-200 bg-gray-50 px-4 py-2 text-left font-semibold text-gray-900">
+                  <th className="border border-gray-600 bg-gray-800 px-4 py-2 text-left font-semibold text-gray-100">
                     {children}
                   </th>
                 ),
                 td: ({ children }) => (
-                  <td className="border border-gray-200 px-4 py-2 text-gray-600">
+                  <td className="border border-gray-600 px-4 py-2 text-gray-400">
                     {children}
                   </td>
                 ),
@@ -217,8 +217,8 @@ const AIResultsModal: React.FC<AIResultsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="rounded-b-3xl bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-4">
-          <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="rounded-b-3xl bg-gradient-to-r from-gray-800 to-slate-800 px-8 py-4">
+          <div className="flex items-center justify-between text-sm text-gray-400">
             <div className="flex items-center space-x-2">
               <div className="h-2 w-2 rounded-full bg-green-500" />
               <span>AI Response Generated Successfully</span>

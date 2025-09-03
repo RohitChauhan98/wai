@@ -14,10 +14,11 @@ interface Container {
     tasks: any[]
 }
 
+
 const statuses: Container[] = [
-    { id: "pending", title: "Pending", color: "bg-gray-100", tasks: [] },
-    { id: "in-progress", title: "In Progress", color: "bg-yellow-100", tasks: [] },
-    { id: "done", title: "Done", color: "bg-green-100", tasks: [] },
+    { id: "pending", title: "Pending", color: "bg-gray-700", tasks: [] },
+    { id: "in-progress", title: "In Progress", color: "bg-yellow-700", tasks: [] },
+    { id: "done", title: "Done", color: "bg-green-700", tasks: [] },
 ]
 
 
@@ -196,13 +197,13 @@ export default function TaskBoard() {
     const getItemTypeColor = (type: any['type']) => {
         switch (type) {
             case 'task':
-                return 'bg-blue-100 border-blue-300 text-blue-800';
+                return 'bg-blue-900 border-blue-600 text-blue-200';
             case 'human':
-                return 'bg-green-100 border-green-300 text-green-800';
+                return 'bg-green-900 border-green-600 text-green-200';
             case 'reminder':
-                return 'bg-yellow-100 border-yellow-300 text-yellow-800';
+                return 'bg-yellow-900 border-yellow-600 text-yellow-200';
             default:
-                return 'bg-gray-100 border-gray-300 text-gray-800';
+                return 'bg-gray-800 border-gray-600 text-gray-200';
         }
     };
 
@@ -331,9 +332,44 @@ export default function TaskBoard() {
         }
     }
 
-    
 
-    async function talkToHook(aiPrompt: string, task_id: string, workflowId: string): Promise<boolean> {
+    const buildFullPrompt = (task: any, forAi: boolean, humanPrompt: string) => {
+        if (forAi) {
+            return `
+            Task Title: ${task.title}
+
+            Description:
+            ${task.description}
+
+            AI Prompt:
+            ${task.ai_prompt}
+
+            Human Instructions:
+            ${task.human_instructions}
+
+            Deliverables:
+            ${task.deliverables.join(', ')}
+            `.trim();
+        } else {
+            return `
+            Task Title: ${task.title}
+
+            Description:
+            ${task.description}
+
+            Human Prompt:
+            ${humanPrompt}
+
+            Human Instructions:
+            ${task.human_instructions}
+
+            Deliverables:
+            ${task.deliverables.join(', ')}
+            `.trim();
+        }
+    }
+
+    async function talkToHook(prompt: string, task: any, workflowId: string): Promise<boolean> {
         try {
             const response = await fetch('https://n8n.cruxsphere.com/webhook/ec6a6980-cae1-41bc-9fee-535e6687e6a0', {
                 method: 'POST',
@@ -341,7 +377,7 @@ export default function TaskBoard() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    query: aiPrompt,
+                    query: prompt,
                     sessionid: workflowId
                 })
             });
@@ -362,7 +398,7 @@ export default function TaskBoard() {
                 }
             };
 
-            return await saveHookResponse(task_id, aiResponse);
+            return await saveHookResponse(task.task_id, aiResponse);
         } catch (error) {
             console.error('Error:', error);
             // Add error message
@@ -389,7 +425,8 @@ export default function TaskBoard() {
 
         // console.log("Handle Ai Task1", basedOnStatus)
         //send the request to n8n hook
-        let done = await talkToHook(task.ai_prompt, task.task_id, workflow.workflow_id)
+        const prompt = buildFullPrompt(task, true, "");
+        let done = await talkToHook(prompt, task, workflow.workflow_id)
         if (done) {
             task.status = 'in-progress';
             //after completion move the task to completed container
@@ -406,34 +443,36 @@ export default function TaskBoard() {
 
     }
 
-    function handleHumanInputModal(task: any){
+    function handleHumanInputModal(task: any) {
         setSelectedTask(task);
         setIsHumanModalOpen(true);
     }
 
-    function showTaskResult(task: any){
+    function showTaskResult(task: any) {
         getTaskResponse(task.task_id);
         setIsModalOpen(true);
     }
 
 
 
-    useEffect(()=>{
-        if(submit){
+    useEffect(() => {
+        if (submit) {
             handleHumanTask(selectedTask)
-            setSubmit(false)
+
         }
-    },[submit])
+    }, [submit])
 
 
     const handleHumanTask = async (task: any) => {
         //send the request to n8n hook
-        let done = await talkToHook(humanInput, task.task_id, workflow.workflow_id)
+        const prompt = buildFullPrompt(task, false, humanInput);
+        let done = await talkToHook(prompt, task, workflow.workflow_id)
         if (done) {
+            setSubmit(false);
             task.status = 'in-progress';
             //after completion move the task to completed container
             updateItemContainer(task, 'done');
-            saveTaskStatus(task.task_id, 'done');
+            saveTaskStatus(task.task_id, 'done')
         }
     }
 
@@ -456,19 +495,19 @@ export default function TaskBoard() {
             {/* Header with title and status */}
             <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 text-sm mb-1">{item.title}</h3>
-                    <p className="text-xs text-gray-600 leading-relaxed">{item.description}</p>
+                    <h3 className="font-semibold text-gray-200 text-sm mb-1">{item.title}</h3>
+                    <p className="text-xs text-gray-400 leading-relaxed">{item.description}</p>
                 </div>
                 <div className="flex items-center gap-2 ml-3">
                     {item.status === 'done' ?
-                        <CheckCircleIcon className="w-4 h-4 text-green-600" /> :
+                        <CheckCircleIcon className="w-4 h-4 text-green-400" /> :
                         item.status === 'in-progress' ?
-                            <AlertCircle className="w-4 h-4 text-blue-600" /> :
-                            <Circle className="w-4 h-4 text-gray-400" />
+                            <AlertCircle className="w-4 h-4 text-blue-400" /> :
+                            <Circle className="w-4 h-4 text-gray-500" />
                     }
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${item.priority === 1 ? 'bg-red-100 text-red-700' :
-                        item.priority === 2 ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-blue-100 text-blue-700'
+                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${item.priority === 1 ? 'bg-red-900 text-red-300' :
+                        item.priority === 2 ? 'bg-yellow-900 text-yellow-300' :
+                            'bg-blue-900 text-blue-300'
                         }`}>
                         {item.priority === 1 ? 'HIGH' : item.priority === 2 ? 'MED' : 'LOW'}
                     </span>
@@ -476,7 +515,7 @@ export default function TaskBoard() {
             </div>
 
             {/* Meta info row */}
-            <div className="flex items-center justify-between text-xs text-gray-600 mb-3">
+            <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
@@ -487,9 +526,9 @@ export default function TaskBoard() {
                         <span className="capitalize">{item.assigned_to}</span>
                     </div>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${item.status === 'done' ? 'bg-green-100 text-green-700' :
-                    item.status === 'in-progress' ? 'bg-blue-100 text-blue-700' :
-                        'bg-gray-100 text-gray-700'
+                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${item.status === 'done' ? 'bg-green-900 text-green-300' :
+                    item.status === 'in-progress' ? 'bg-blue-900 text-blue-300' :
+                        'bg-gray-800 text-gray-300'
                     }`}>
                     {item.status}
                 </span>
@@ -497,16 +536,16 @@ export default function TaskBoard() {
 
             {/* Deliverables */}
             {item.deliverables && item.deliverables.length > 0 && (
-                <div className="mb-3 p-2 bg-white bg-opacity-60 rounded-lg">
+                <div className="mb-3 p-2 bg-gray-800 bg-opacity-60 rounded-lg">
                     <div className="flex items-start gap-1">
-                        <Flag className="w-3 h-3 mt-0.5 text-orange-500" />
+                        <Flag className="w-3 h-3 mt-0.5 text-orange-400" />
                         <div className="flex-1">
-                            <span className="text-xs font-medium text-gray-700">Deliverables:</span>
+                            <span className="text-xs font-medium text-gray-300">Deliverables:</span>
                             <div className="mt-1 space-y-1">
                                 {item.deliverables.map((deliverable: any, index: number) => (
                                     <div key={index} className="flex items-start gap-1">
                                         <div className="w-1 h-1 bg-blue-400 rounded-full mt-1.5 flex-shrink-0"></div>
-                                        <span className="text-xs text-gray-600">{deliverable}</span>
+                                        <span className="text-xs text-gray-400">{deliverable}</span>
                                     </div>
                                 ))}
                             </div>
@@ -521,21 +560,21 @@ export default function TaskBoard() {
                     <Calendar className="w-3 h-3" />
                     <span>{new Date(item.created_at).toLocaleDateString()}</span>
                 </div>
-                <span className={`text-xs px-3 py-1 rounded-full font-medium uppercase tracking-wide ${item.type === 'human' ? 'bg-blue-500 text-white' :
-                    item.type === 'ai' ? 'bg-purple-500 text-white' :
-                        'bg-gray-500 text-white'
+                <span className={`text-xs px-3 py-1 rounded-full font-medium uppercase tracking-wide ${item.type === 'human' ? 'bg-blue-600 text-white' :
+                    item.type === 'ai' ? 'bg-purple-600 text-white' :
+                        'bg-gray-600 text-white'
                     }`}>
                     {item.type}
                 </span>
             </div>
             {item.type === 'ai' && item.status !== 'done' && <div className='flex justify-end mt-3'>
-                <button onClick={() => handleAiTask(item)} className='bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 active:scale-95 active:bg-blue-700 transition-transform duration-150'>{item.status == 'pending' ? 'Proceed' : item.status === 'in-progress' ? 'Processing...' : 'Completed'}</button>
+                <button onClick={() => handleAiTask(item)} className='bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 active:scale-95 active:bg-blue-800 transition-transform duration-150'>{item.status == 'pending' ? 'Proceed' : item.status === 'in-progress' ? 'Processing...' : 'Completed'}</button>
             </div>}
             {item.type === 'human' && item.status !== 'done' && <div className='flex justify-end mt-3'>
-                <button onClick={() =>{item.status == 'pending' ? moveHumanTasktoInprogress(item) : item.status === 'in-progress' ? handleHumanInputModal(item) :  null }}className='bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 active:scale-95 active:bg-blue-700 transition-transform duration-150'>{item.status == 'pending' ? 'Proceed' : item.status === 'in-progress' ? (submit ? 'Processing...' : 'Write a Note...') : 'Completed'}</button>
+                <button onClick={() => { item.status == 'pending' ? moveHumanTasktoInprogress(item) : item.status === 'in-progress' ? handleHumanInputModal(item) : null }} className='bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 active:scale-95 active:bg-blue-800 transition-transform duration-150'>{item.status == 'pending' ? 'Proceed' : item.status === 'in-progress' ? (submit ? 'Processing...' : 'Write a Note...') : 'Completed'}</button>
             </div>}
             {item.status === 'done' && <div className='flex justify-end mt-3'>
-                <button onClick={() => showTaskResult(item)} className='bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 active:scale-95 active:bg-blue-700 transition-transform duration-150'>Show Result</button>
+                <button onClick={() => showTaskResult(item)} className='bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 active:scale-95 active:bg-blue-800 transition-transform duration-150'>Show Result</button>
             </div>}
         </div>
     );
@@ -567,12 +606,12 @@ export default function TaskBoard() {
 
 
         return (
-            <div className={`pb-[60px] p-4 rounded ${container.color}`}>
+            <div className={`pb-[60px] p-4 rounded-xl ${container.color}`}>
                 <div className="flex-1 h-full">
                     <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-bold text-gray-800">{container.title}</h3>
+                        <h3 className="text-lg font-bold text-white">{container.title}</h3>
                         <div className="flex items-center gap-2">
-                            <span className="text-xs bg-gray-200 px-2 py-1 rounded-full">
+                            <span className="text-xs bg-gray-400 px-2 py-1 rounded-full text-black font-bold">
                                 {container.tasks.length}
                             </span>
                             {/* <button
@@ -599,7 +638,7 @@ export default function TaskBoard() {
                             <div className="flex items-center justify-center h-32 text-gray-500 text-center">
                                 <div>
                                     <div className="text-2xl mb-2">📋</div>
-                                    <div className="text-sm">Drop items here</div>
+                                    <div className="text-sm text-white">Drop items here</div>
                                 </div>
                             </div>
                         ) : (
@@ -634,14 +673,14 @@ export default function TaskBoard() {
     }, [workflow])
 
     useEffect(() => {
-        console.log("Tasks basedOnStatus:", basedOnStatus)
-    }, [basedOnStatus])
+        console.log("Submit State:", basedOnStatus)
+    }, [submit])
 
 
     return (
         <div className="" >
             <div>
-                <p className='text-black text-2xl text-center font-medium py-5'>{workflow.title || ""}</p>
+                <p className='text-white text-2xl text-center font-medium py-5'>{workflow.title || ""}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-6 mt-5">
                 {basedOnStatus && basedOnStatus.map((statusContainer) => (
