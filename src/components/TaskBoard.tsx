@@ -464,6 +464,7 @@ export default function TaskBoard() {
 
 
     const handleHumanTask = async (task: any) => {
+
         //send the request to n8n hook
         const prompt = buildFullPrompt(task, false, humanInput);
         let done = await talkToHook(prompt, task, workflow.workflow_id)
@@ -568,12 +569,19 @@ export default function TaskBoard() {
                 </span>
             </div>
             {item.type === 'ai' && item.status !== 'done' && <div className='flex justify-end mt-3'>
+
                 <button onClick={() => handleAiTask(item)} className='bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 active:scale-95 active:bg-blue-800 transition-transform duration-150'>{item.status == 'pending' ? 'Proceed' : item.status === 'in-progress' ? 'Processing...' : 'Completed'}</button>
             </div>}
             {item.type === 'human' && item.status !== 'done' && <div className='flex justify-end mt-3'>
                 <button onClick={() => { item.status == 'pending' ? moveHumanTasktoInprogress(item) : item.status === 'in-progress' ? handleHumanInputModal(item) : null }} className='bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 active:scale-95 active:bg-blue-800 transition-transform duration-150'>{item.status == 'pending' ? 'Proceed' : item.status === 'in-progress' ? (submit ? 'Processing...' : 'Write a Note...') : 'Completed'}</button>
             </div>}
-            {item.status === 'done' && <div className='flex justify-end mt-3'>
+            {item.status === 'done' && <div className='flex justify-between mt-3'>
+                {item.type === 'ai' && <button onClick={() => {
+                    updateItemContainer(item, 'in-progress');
+                    saveTaskStatus(item.task_id, 'in-progress');
+                    handleHumanInputModal(item);
+                }} className='bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 active:scale-95 active:bg-blue-800 transition-transform duration-150'>Custom Prompt</button>}
+
                 <button onClick={() => showTaskResult(item)} className='bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 active:scale-95 active:bg-blue-800 transition-transform duration-150'>Show Result</button>
             </div>}
         </div>
